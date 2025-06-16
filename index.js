@@ -9,19 +9,19 @@ const PORT = 3000;
 
 app.use(express.json());
 
-const ALLOWED_ORIGIN = 'https://app.bullhornstaffing.com';
+// const ALLOWED_ORIGIN = 'https://app.bullhornstaffing.com';
 
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// app.use((req, res, next) => {
+//     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+//     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200); // Respond to preflight
-    }
+//     if (req.method === 'OPTIONS') {
+//         return res.sendStatus(200); // Respond to preflight
+//     }
 
-    next();
-});
+//     next();
+// });
 
 function toFormUrlEncoded(obj) {
     return Object.keys(obj)
@@ -30,16 +30,6 @@ function toFormUrlEncoded(obj) {
 }
 
 app.post('/get-token', async (req, res) => {
-    // Add CORS headers
-    res.setHeader('Access-Control-Allow-Origin', 'https://app.bullhornstaffing.com');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-
-    // Handle preflight OPTIONS request
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
 
     const params = {
         client_id: process.env.CLIENT_ID,

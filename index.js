@@ -1,73 +1,44 @@
+require('dotenv').config();
 const express = require('express');
-//const fetch = require('node-fetch'); // For Node < 18; use global fetch in v18+
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 const app = express();
-const PORT = 3000;
 
 app.use(express.json());
 
-console.log({
-    CLIENT_ID: process.env.CLIENT_ID,
-    CLIENT_SECRET: process.env.CLIENT_SECRET ? '[OK]' : '[MISSING]',
-    GRANT_TYPE: process.env.GRANT_TYPE,
-    SCOPE: process.env.SCOPE,
-    TOKEN_URL: process.env.TOKEN_URL
-});
-// const ALLOWED_ORIGIN = 'https://app.bullhornstaffing.com';
-
-// app.use((req, res, next) => {
-//     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-//     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-//     if (req.method === 'OPTIONS') {
-//         return res.sendStatus(200); // Respond to preflight
-//     }
-
-//     next();
-// });
-
-function toFormUrlEncoded(obj) {
-    return Object.keys(obj)
-        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]))
-        .join('&');
-}
-
 app.post('/get-token', async (req, res) => {
-
-    const params = {
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        grant_type: process.env.GRANT_TYPE,
-        scope: process.env.SCOPE
-    };
-    console.log(params);
     try {
+        const params = new URLSearchParams({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            grant_type: process.env.GRANT_TYPE,
+            scope: process.env.SCOPE
+        });
+
+        console.log('🔍 Sending request with:', params.toString());
+
         const response = await fetch(process.env.TOKEN_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: toFormUrlEncoded(params)
+            body: params.toString()
         });
 
+        const data = await response.json();
+        console.log('📥 Paylocity response:', data);
+
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).send({ error: 'Token request failed', details: errorText });
+            return res.status(401).json({ error: 'Unauthorized', details: data });
         }
 
-        const data = await response.json();
-        res.json({ access_token: data.access_token });
+        res.json({ token: data.access_token });
 
     } catch (error) {
-        console.error('Error getting token:', error);
+        console.error('🔥 Internal Error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+    console.log('🚀 Server running on port 3000');
 });

@@ -21,6 +21,12 @@ app.post('/get-token', async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     const params = {
         client_id: process.env.CLIENT_ID,
         client_secret: process.env.CLIENT_SECRET,

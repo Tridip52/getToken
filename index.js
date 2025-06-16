@@ -1,62 +1,50 @@
-const express = require('express');
-//const fetch = require('node-fetch'); // For Node < 18; use global fetch in v18+
-const dotenv = require('dotenv');
+import express from 'express';
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
 
 dotenv.config();
-
 const app = express();
-const PORT = 3000;
-
 app.use(express.json());
 
-function toFormUrlEncoded(obj) {
-    return Object.keys(obj)
-        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]))
-        .join('&');
-}
+const ALLOWED_ORIGIN = 'https://app.bullhornstaffing.com'; // ✅ restrict to frontend origin
 
-app.post('/get-token', async (req, res) => {
-    // Add CORS headers
-    res.setHeader('Access-Control-Allow-Origin', 'https://app.bullhornstaffing.com');
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-
-    // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        return res.sendStatus(200); // ✅ Handle preflight
     }
+    next();
+});
 
-    const params = {
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        grant_type: process.env.GRANT_TYPE,
-        scope: process.env.SCOPE
-    };
-    console.log(params);
+app.post('/get-token', async (req, res) => {
     try {
-        const response = await fetch(process.env.TOKEN_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: toFormUrlEncoded(params)
+        const body = new URLSearchParams({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            grant_type: process.env.GRANT_TYPE,
+            scope: process.env.SCOPE,
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).send({ error: 'Token request failed', details: errorText });
-        }
+        const response = await fetch(process.env.TOKEN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+        });
 
         const data = await response.json();
-        res.json({ access_token: data.access_token });
 
-    } catch (error) {
-        console.error('Error getting token:', error);
+        if (!response.ok) {
+            console.error('Token error:', data);
+            return res.status(401).json({ error: 'Unauthorized', details: data });
+        }
+
+        res.status(200).json({ token: data.access_token });
+    } catch (err) {
+        console.error('Internal error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+export default app;

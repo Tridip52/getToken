@@ -9,6 +9,13 @@ const PORT = 3000;
 
 app.use(express.json());
 
+console.log({
+    CLIENT_ID: process.env.CLIENT_ID,
+    CLIENT_SECRET: process.env.CLIENT_SECRET ? '[OK]' : '[MISSING]',
+    GRANT_TYPE: process.env.GRANT_TYPE,
+    SCOPE: process.env.SCOPE,
+    TOKEN_URL: process.env.TOKEN_URL
+});
 // const ALLOWED_ORIGIN = 'https://app.bullhornstaffing.com';
 
 // app.use((req, res, next) => {

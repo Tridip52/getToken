@@ -40,12 +40,14 @@ app.post('/get-token', async (req, res) => {
         console.log('📥 Paylocity response:', data);
 
         if (!response.ok) {
+            res.setHeader('Access-Control-Allow-Origin', '*'); // Add in error too
             return res.status(401).json({ error: 'Unauthorized', details: data });
         }
 
         res.json({ token: data.access_token });
 
     } catch (error) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
         console.error('🔥 Internal Error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
